@@ -14,6 +14,11 @@ const sometype7 = Sometype_Mono({
   weight: "700",
   style: "italic",
 });
+const sometypeLatin = Sometype_Mono({
+  subsets: ["latin"],
+  weight: "500",
+  style: "italic",
+});
 
 export default function Home() {
   const mounted = useIsMounted();
@@ -37,7 +42,6 @@ export default function Home() {
     setHash(tx);
   }
 
-
   return (
     <>
       <div className="h-screen">
@@ -46,13 +50,13 @@ export default function Home() {
             <ConnectButton />
           </div>
           <div className={`${sometype7.className}`}>
-            <div className="flex justify-center mt-10 mb-[6%] ">
-              <TypeAnimation  
+            <div className="flex justify-center max-xl:mt-10 max-xl:mb-[6%] mb-[4%]">
+              <TypeAnimation
                 sequence={[
                   // Same substring at the start will only be typed out once, initially
-                  "_Escrow",
-                  1000, // wait 1s before replacing "Mice" with "Hamsters"
                   "_Esc",
+                  1000, // wait 1s before replacing "Mice" with "Hamsters"
+                  "_Escrow",
                   1000,
                 ]}
                 wrapper="span"
@@ -63,8 +67,8 @@ export default function Home() {
               />
             </div>
           </div>
-          <div className="flex flex-col gap-2 justify-center items-center">
-            <form className="flex flex-col gap-2 border-2 border-black rounded-xl shadow-2xl  h-[50vh] w-[30%] px-3 pt-5 hover:scale-[102%] transition-transform delay-100">
+          <div className="flex gap-10 mx-10">
+            <form className="flex flex-col gap-2 border-2 border-black rounded-xl shadow-2xl  lg:h-[60vh] xl:h-[65vh] max-xl:h-[50vh] w-[30%] px-3 pt-5 hover:scale-[102%] transition-transform delay-100">
               <h2 className="text-3xl flex justify-center mt-5 bold">
                 Contract
               </h2>
@@ -76,7 +80,7 @@ export default function Home() {
                   <input
                     type="text"
                     id="arbiter"
-                    className="border border-black rounded-md h-[32px] px-1 py-2 bg-inherit"
+                    className="border border-black rounded-md h-[32px] p-3 bg-inherit"
                     placeholder="0x000000000000000"
                     onChange={(e) => {
                       e.preventDefault();
@@ -91,7 +95,7 @@ export default function Home() {
                   <input
                     type="text"
                     id="beneficiary"
-                    className="border border-black rounded-md h-[32px] px-1 py-2 bg-inherit"
+                    className="border border-black rounded-md h-[32px] p-3 bg-inherit"
                     placeholder="0x000000000000000"
                     onChange={(e) => {
                       e.preventDefault();
@@ -106,7 +110,7 @@ export default function Home() {
                   <input
                     type="text"
                     id="value"
-                    className="border border-black rounded-md h-[32px] px-1 py-2 bg-inherit"
+                    className="border border-black rounded-md h-[32px] p-3 bg-inherit"
                     placeholder="100000000000000"
                     onChange={(e) => {
                       e.preventDefault();
@@ -128,14 +132,54 @@ export default function Home() {
                   </button>
                 </div>
               )}
+              {hash && <h2 className="p-4 text-gray-400">{hash}</h2>}
             </form>
-            {hash && <h2>{hash}</h2>}
+            <div className="flex-grow  border-black border-2 justify-center rounded-xl shadow-2xl">
+              <h2 className="text-center mt-8 text-3xl justify-center">
+                Deployed Contracts
+              </h2>
+              <div className="flex flex-col mt-10 mx-5 border-2 border-black rounded-xl shadow-lg gap-5 hover:scale-[101%] transition-transform">
+                <div className="flex ">
+                  <div className="flex flex-col justify-start gap-3 p-3">
+                    <h2 className="">
+                      Arbiter{" "}
+                      <span className="text-gray-500">
+                        0xE176E8Db59dCd3dD19F69386f8D6431De6Dd5e50
+                      </span>
+                    </h2>
+                    <h2 className="">
+                      Beneficiary{" "}
+                      <span className="text-gray-500">
+                        0xE176E8Db59dCd3dD19F69386f8D6431De6Dd5e50
+                      </span>
+                    </h2>
+                    <h2 className="">
+                      Value{" "}
+                      <span className="text-gray-500">1000000000000000000</span>
+                    </h2>
+                  </div>
+                  <div className="flex justify-evenly items-center flex-grow ">
+                    <button className="bg-black text-white px-5 py-2 rounded-lg  justify-center transition-transform hover:scale-[102%] w-[50%]">Approve</button>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
+        </div>
+        <div
+          className={`${sometypeLatin.className} flex absolute bottom-0 ml-5 mb-5`}
+        >
+          <TypeAnimation
+            sequence={["by 0x.elpabl0", 2000, "by elpabl0.eth", 2000]}
+            wrapper="span"
+            speed={5}
+            deletionSpeed={5}
+            style={{ fontSize: "1.125rem" }}
+            repeat={Infinity}
+          />
+          <h2 className="text-lg">for Alchemy University</h2>
         </div>
       </div>
     </>
   );
 }
-
-
-
