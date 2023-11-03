@@ -1,6 +1,6 @@
 const Escrow = require('../artifacts/contracts/Contract.sol/Escrow.json');
-const { createPublicClient, http, getContractAddress } = require('viem')
-const { mainnet, localhost } = require('viem/chains')
+const { createPublicClient, http, } = require('viem')
+const { mainnet, localhost, goerli } = require('viem/chains')
 
 
 async function deploy(walletClient, arbiter, beneficiary, value) {    
@@ -12,10 +12,10 @@ try {
     value,
   })
   const publicClient = createPublicClient({
-    chain: localhost,
+    chain: process.env.NEXT_PUBLIC_ENABLE_TESTNETS == "true" ? goerli : localhost,
     transport: http()
   })
-  const tx = await publicClient.getTransactionReceipt({
+  const tx = await publicClient.waitForTransactionReceipt({
     hash,
   })
   // console.log(tx);

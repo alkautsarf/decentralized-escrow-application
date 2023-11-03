@@ -21,9 +21,11 @@ const sometypeLatin = Sometype_Mono({
   style: "italic",
 });
 
+const network = process.env.NEXT_PUBLIC_ENABLE_TESTNETS == "true" ? goerli : localhost;
+
 export default function Home() {
   const mounted = useIsMounted();
-  const { address, isConnecting, isDisconnected, isConnected } = useAccount();
+  const { address, isConnected } = useAccount();
 
   const [arbiter, setArbiter] = useState(null);
   const [beneficiary, setBeneficiary] = useState(null);
@@ -37,12 +39,12 @@ export default function Home() {
     }
     const client = createWalletClient({
       account: address,
-      chain: localhost,
+      chain: network,
       transport: custom(window.ethereum),
     });
     const ethValue = parseEther(value);
     const tx = await deploy(client, arbiter, beneficiary, ethValue);
-    setHash(tx.hash);
+    setHash(tx);
     setEscrows([...escrows, {
       address: tx.address,
       arbiter,
@@ -55,12 +57,12 @@ export default function Home() {
     if(address !== arbiter) return alert("You are not the arbiter");
     const client = createWalletClient({
       account: address,
-      chain: localhost,
+      chain: network,
       transport: custom(window.ethereum),
     });
 
     const publicClient = createPublicClient({
-      chain: localhost,
+      chain: network,
       transport: http(),
       account: address,
     })
@@ -73,8 +75,9 @@ export default function Home() {
 
     const hash = await client.writeContract(request)
 
-    const receipt = await publicClient.getTransactionReceipt({
+    const receipt = await publicClient.waitForTransactionReceipt({
       hash,
+      confirmations: 10
     })
 
     if(hash && receipt) {
