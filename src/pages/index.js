@@ -2,11 +2,12 @@ import { Domine, Sometype_Mono } from "next/font/google";
 import { ethers } from "ethers";
 import { useEffect, useState } from "react";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
-import { createWalletClient, custom } from "viem";
-import { localhost, mainnet } from "viem/chains";
+import { createWalletClient, custom, parseEther, createPublicClient, http } from "viem";
+import { localhost, mainnet, goerli } from "viem/chains";
 import { useAccount } from "wagmi";
 import { useIsMounted } from "../hooks/useIsMounted";
 import { TypeAnimation } from "react-type-animation";
+import Escrow from "../artifacts/contracts/Contract.sol/Escrow.json";
 const deploy = require("../scripts/deploy");
 const sometype = Sometype_Mono({ subsets: ["latin"], weight: "500" });
 const sometype7 = Sometype_Mono({
@@ -28,6 +29,7 @@ export default function Home() {
   const [beneficiary, setBeneficiary] = useState(null);
   const [value, setValue] = useState(null);
   const [hash, setHash] = useState(null);
+  const [escrows, setEscrows] = useState([]);
 
   async function deployContract() {
     if (!arbiter || !beneficiary || !value) {
@@ -38,8 +40,46 @@ export default function Home() {
       chain: localhost,
       transport: custom(window.ethereum),
     });
-    const tx = await deploy(client, arbiter, beneficiary, value);
-    setHash(tx);
+    const ethValue = parseEther(value);
+    const tx = await deploy(client, arbiter, beneficiary, ethValue);
+    setHash(tx.hash);
+    setEscrows([...escrows, {
+      address: tx.address,
+      arbiter,
+      beneficiary,
+      value,
+    }]);
+  }
+
+  async function approve(_address, arbiter) {
+    if(address !== arbiter) return alert("You are not the arbiter");
+    const client = createWalletClient({
+      account: address,
+      chain: localhost,
+      transport: custom(window.ethereum),
+    });
+
+    const publicClient = createPublicClient({
+      chain: localhost,
+      transport: http(),
+      account: address,
+    })
+
+    const { request } = await publicClient.simulateContract({
+      address: _address,
+      abi: Escrow.abi,
+      functionName: 'approve',
+    })
+
+    const hash = await client.writeContract(request)
+
+    const receipt = await publicClient.getTransactionReceipt({
+      hash,
+    })
+
+    if(hash && receipt) {
+      setEscrows(escrows.filter(e => e.address !== _address))
+    }
   }
 
   return (
@@ -52,13 +92,7 @@ export default function Home() {
           <div className={`${sometype7.className}`}>
             <div className="flex justify-center max-xl:mt-10 max-xl:mb-[6%] mb-[4%]">
               <TypeAnimation
-                sequence={[
-                  // Same substring at the start will only be typed out once, initially
-                  "_Esc",
-                  1000, // wait 1s before replacing "Mice" with "Hamsters"
-                  "_Escrow",
-                  1000,
-                ]}
+                sequence={["_Esc", 1000, "_Escrow", 1000]}
                 wrapper="span"
                 speed={10}
                 deletionSpeed={10}
@@ -111,10 +145,15 @@ export default function Home() {
                     type="text"
                     id="value"
                     className="border border-black rounded-md h-[32px] p-3 bg-inherit"
-                    placeholder="100000000000000"
+                    placeholder="1 ETH"
                     onChange={(e) => {
                       e.preventDefault();
-                      setValue(e.target.value);
+                      const regex = /[^0-9.]/;
+                      if (regex.test(e.target.value)) {
+                        e.preventDefault();
+                        e.target.value = ""; // Clear the input field
+                        alert("Please enter a valid number");
+                      } else setValue(e.target.value);
                     }}
                   ></input>
                 </div>
@@ -132,37 +171,58 @@ export default function Home() {
                   </button>
                 </div>
               )}
-              {hash && <h2 className="p-4 text-gray-400">{hash}</h2>}
+              {/* {hash.hash ? (
+                <h2 className="p-4 text-gray-400 text-center break-words">
+                  Tx Hash: {hash.hash}
+                </h2>
+              ) : (
+                <h2 className="p-4 text-gray-400 text-center break-words">
+                  {hash}
+                </h2>
+              )} */}
             </form>
             <div className="flex-grow  border-black border-2 justify-center rounded-xl shadow-2xl">
               <h2 className="text-center mt-8 text-3xl justify-center">
                 Deployed Contracts
               </h2>
-              <div className="flex flex-col mt-10 mx-5 border-2 border-black rounded-xl shadow-lg gap-5 hover:scale-[101%] transition-transform">
-                <div className="flex ">
-                  <div className="flex flex-col justify-start gap-3 p-3">
-                    <h2 className="">
-                      Arbiter{" "}
-                      <span className="text-gray-500">
-                        0xE176E8Db59dCd3dD19F69386f8D6431De6Dd5e50
-                      </span>
-                    </h2>
-                    <h2 className="">
-                      Beneficiary{" "}
-                      <span className="text-gray-500">
-                        0xE176E8Db59dCd3dD19F69386f8D6431De6Dd5e50
-                      </span>
-                    </h2>
-                    <h2 className="">
-                      Value{" "}
-                      <span className="text-gray-500">1000000000000000000</span>
-                    </h2>
+              {escrows?.map((escrow, idx) => {
+                return (
+                  <div key={idx} className="flex flex-col mt-10 mx-5 border-2 border-black rounded-xl shadow-lg gap-5 hover:scale-[101%] transition-transform">
+                    <div className="flex ">
+                      <div className="flex flex-col justify-start gap-3 p-3">
+                        <h2 className="">
+                          Arbiter{" "}
+                          <span className="text-gray-500">
+                            {escrow?.arbiter}
+                          </span>
+                        </h2>
+                        <h2 className="">
+                          Beneficiary{" "}
+                          <span className="text-gray-500">
+                          {escrow?.beneficiary}
+                          </span>
+                        </h2>
+                        <h2 className="">
+                          Value{" "}
+                          <span className="text-gray-500">
+                            {escrow?.value} ETH
+                          </span>
+                        </h2>
+                      </div>
+                      <div className="flex justify-evenly items-center flex-grow ">
+                        <button className="bg-black text-white px-5 py-2 rounded-lg  justify-center transition-transform hover:scale-[102%] w-[50%]"
+                          onClick={e => {
+                            e.preventDefault();
+                            approve(escrow?.address, escrow?.arbiter);
+                          }}
+                        >
+                          Approve
+                        </button>
+                      </div>
+                    </div>
                   </div>
-                  <div className="flex justify-evenly items-center flex-grow ">
-                    <button className="bg-black text-white px-5 py-2 rounded-lg  justify-center transition-transform hover:scale-[102%] w-[50%]">Approve</button>
-                  </div>
-                </div>
-              </div>
+                );
+              })}
             </div>
           </div>
         </div>

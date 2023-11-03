@@ -1,4 +1,7 @@
 const Escrow = require('../artifacts/contracts/Contract.sol/Escrow.json');
+const { createPublicClient, http, getContractAddress } = require('viem')
+const { mainnet, localhost } = require('viem/chains')
+
 
 async function deploy(walletClient, arbiter, beneficiary, value) {    
 try {
@@ -8,10 +11,18 @@ try {
     args: [arbiter, beneficiary],
     value,
   })
-  console.log(hash);
-  return hash
+  const publicClient = createPublicClient({
+    chain: localhost,
+    transport: http()
+  })
+  const tx = await publicClient.getTransactionReceipt({
+    hash,
+  })
+  // console.log(tx);
+
+  return {hash, address: tx.contractAddress}
 } catch (e) {
-  console.log(e.details);
+  console.log(e.details || e);
   return e.details
 }
 }
