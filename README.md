@@ -1,6 +1,7 @@
 # _Escrow
 
 This is my take on Escrow Dapp for Alchemy University Week 5 Assignment, built using Next.JS, Hardhat, Rainbowkit, Wagmi and Viem.
+This app is still under development and doesn't cover persistence track of all smart contracts that have been deployed.
 
 Live App : https://decentralized-escrow-application-opal.vercel.app/
 
