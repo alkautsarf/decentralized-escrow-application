@@ -13,7 +13,7 @@ try {
   })
   const publicClient = createPublicClient({
     chain: process.env.NEXT_PUBLIC_ENABLE_TESTNETS == "true" ? goerli : localhost,
-    transport: http()
+    transport: http(process.env.NEXT_PUBLIC_ALCHEMY_API)
   })
   const tx = await publicClient.waitForTransactionReceipt({
     hash,

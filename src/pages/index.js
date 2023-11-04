@@ -54,7 +54,8 @@ export default function Home() {
   }
 
   async function approve(_address, arbiter) {
-    if(address !== arbiter) return alert("You are not the arbiter");
+    try {
+      if(address !== arbiter) return alert("You are not the arbiter");
     const client = createWalletClient({
       account: address,
       chain: network,
@@ -63,7 +64,7 @@ export default function Home() {
 
     const publicClient = createPublicClient({
       chain: network,
-      transport: http(),
+      transport: http(process.env.NEXT_PUBLIC_ALCHEMY_API),
       account: address,
     })
 
@@ -77,11 +78,14 @@ export default function Home() {
 
     const receipt = await publicClient.waitForTransactionReceipt({
       hash,
-      confirmations: 10
+      confirmations: 1
     })
 
     if(hash && receipt) {
       setEscrows(escrows.filter(e => e.address !== _address))
+    }
+    } catch (e) {
+      console.log(e)
     }
   }
 
